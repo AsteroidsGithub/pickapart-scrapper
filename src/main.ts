@@ -1,36 +1,40 @@
-/**
- * Some predefined delay values (in milliseconds).
- */
-export enum Delays {
-    Short = 500,
-    Medium = 2000,
-    Long = 5000,
-}
+import { CheerioCrawler, Configuration, Dataset, log } from 'crawlee';
+import { router } from './router.js';
 
-/**
- * Returns a Promise<string> that resolves after a given time.
- *
- * @param {string} name - A name.
- * @param {number=} [delay=Delays.Medium] - A number of milliseconds to delay resolution of the Promise.
- * @returns {Promise<string>}
- */
-function delayedHello(
-    name: string,
-    delay: number = Delays.Medium,
-): Promise<string | undefined> {
-    return new Promise((resolve: (value?: string) => void) =>
-        setTimeout(() => resolve(`Hello, ${name}`), delay),
-    );
-}
+// All branch info
+// https://home.pickapart.co.nz/Home/LoadVehiclesByBranchMMS/
+// payload: {
+//   MakeId 0
+//   ModelId 0
+//   SeriesId 0
+//   BranchID 4
+// }
+// returns a list of all makes, models, series and branches {
+//     "MMS": "Alfa Romeo-Romeo-147 01/05",
+//     "MakeID": 1,
+//     "ModelID": 3229,
+//     "SeriesID": 4732,
+//     "BranchID": 4,
+//     "Count": 3,
+//     "Make": "Alfa Romeo",
+//     "MakeCount": 3
+// }
+// which can then be passed to the url
+// https://home.pickapart.co.nz/Home/VehiclesListinYard?MKID=1&MID=3589&SID=6710&BTPL=0&BID=7
+// listing all vehicles in that branch with that make, model and series
+// each listing has a link to the vehicle details page, which contains the information we want to scrape
+// example url
+// https://home.pickapart.co.nz/PickAPart/ProductNewDetailsNew?Aid=301033
 
-// Please see the comment in the .eslintrc.json file about the suppressed rule!
-// Below is an example of how to use ESLint errors suppression. You can read more
-// at https://eslint.org/docs/latest/user-guide/configuring/rules#disabling-rules
+const crawler = new CheerioCrawler({
+    requestHandler: router,
+    maxRequestRetries: 10,
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-explicit-any
-export async function greeter(name: any) {
-    // The name parameter should be of type string. Any is used only to trigger the rule.
-    return await delayedHello(name, Delays.Long);
-}
+    // maxRequestsPerCrawl: 200, // Limit to 100 requests for testing purposes
+});
 
-greeter('World').then((greeting) => console.log(greeting));
+await crawler.run([
+    'https://home.pickapart.co.nz/PickAPart/ProductNewDetailsNew?Aid=301033',   
+    'https://home.pickapart.co.nz/PickAPart/ProductNewDetailsNew?Aid=301105',
+    'https://home.pickapart.co.nz/PickAPart/ProductNewDetailsNew?Aid=253470'
+]);

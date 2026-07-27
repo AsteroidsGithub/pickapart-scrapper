@@ -50,6 +50,7 @@
     },
     "dependencies": {
         "cheerio": "^1.2.0",
+        "crawlee": "^3.17.0",
         "tslib": "~2.8"
     }
 }
